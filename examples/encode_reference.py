@@ -5,7 +5,7 @@ from librosa import load
 from neucodec import NeuCodec
 
 
-def main(ref_audio_path, output_path="output.wav"):
+def main(ref_audio_path, output_path="output.pt"):
     print("Encoding reference audio")
 
     # Make sure output path ends with .pt
