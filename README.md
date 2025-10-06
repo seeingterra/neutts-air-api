@@ -34,7 +34,7 @@ NeuTTS Air is built off Qwen 0.5B - a lightweight yet capable language model opt
    git clone https://github.com/neuphonic/neutts-air.git
    ```
    ```bash
-   cd neuttsair
+   cd neutts-air
    ```
 
 2. **Install `espeak` (required dependency)**
