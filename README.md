@@ -85,7 +85,7 @@ NeuTTS Air is built off Qwen 0.5B - a lightweight yet capable language model opt
    https://pypi.org/project/llama-cpp-python/
 
 5. **(Optional) Install onnxruntime to use the `.onnx` decoder.**
-   If you wnat to run the onnxdecoder
+   If you want to run the onnxdecoder
    ```
    pip install onnxruntime
    ```
