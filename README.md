@@ -2,9 +2,7 @@
 
 HuggingFace 🤗: [Model](https://huggingface.co/neuphonic/neutts-air), [Q8 GGUF](https://huggingface.co/neuphonic/neutts-air-q8-gguf), [Q4 GGUF](https://huggingface.co/neuphonic/neutts-air-q4-gguf) [Spaces](https://huggingface.co/spaces/neuphonic/neutts-air)
 
-<a href="https://www.youtube.com/watch?v=YAB3hCtu5wE"><img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ec8efcaf-ef79-4c16-b549-ddebc2256c2f" /></a>
-
-Click the image above to watch NeuTTS Air in action on YouTube!
+[Demo Video](https://github.com/user-attachments/assets/020547bc-9e3e-440f-b016-ae61ca645184)
 
 *Created by [Neuphonic](http://neuphonic.com/) - building faster, smaller, on-device voice AI*
 
@@ -20,8 +18,9 @@ State-of-the-art Voice AI has been locked behind web APIs for too long. NeuTTS A
 ## Model Details
 
 NeuTTS Air is built off Qwen 0.5B - a lightweight yet capable language model optimised for text understanding and generation - as well as a powerful combination of technologies designed for efficiency and quality:
-
-- **Audio Codec**: [NeuCodec](https://huggingface.co/neuphonic/neucodec) - our proprietary neural audio codec that achieves exceptional audio quality at low bitrates using a single codebook
+- **Supported Languages**: English
+- **Audio Codec**: [NeuCodec](https://huggingface.co/neuphonic/neucodec) - our 50hz neural audio codec that achieves exceptional audio quality at low bitrates using a single codebook
+- **Context Window**: 2048 tokens, enough for processing ~30 seconds of audio (including prompt duration)
 - **Format**: Available in GGML format for efficient on-device inference
 - **Responsibility**: Watermarked outputs
 - **Inference Speed**: Real-time generation on mid-range devices
@@ -90,7 +89,7 @@ NeuTTS Air is built off Qwen 0.5B - a lightweight yet capable language model opt
    pip install onnxruntime
    ```
 
-## Basic Example
+## Running the Model
 
 Run the basic example script to synthesize speech:
 ```bash
@@ -104,13 +103,18 @@ To specify a particular model repo for the backbone or codec, add the `--backbon
 
 Several examples are available, including a Jupyter notebook in the `examples` folder.
 
-### Simple One-Code Block Usage
+### One-Code Block Usage
 
 ```python
 from neuttsair.neutts import NeuTTSAir
 import soundfile as sf
 
-tts = NeuTTSAir( backbone_repo="neuphonic/neutts-air-q4-gguf", backbone_device="cpu", codec_repo="neuphonic/neucodec", codec_device="cpu")
+tts = NeuTTSAir(
+   backbone_repo="neuphonic/neutts-air", # or 'neutts-air-q4-gguf' wit llama-cpp-python installed
+   backbone_device="cpu",
+   codec_repo="neuphonic/neucodec",
+   codec_device="cpu"
+)
 input_text = "My name is Dave, and um, I'm from London."
 
 ref_text = "samples/dave.txt"
@@ -123,40 +127,7 @@ wav = tts.infer(input_text, ref_codes, ref_text)
 sf.write("test.wav", wav, 24000)
 ```
 
-
-## Advanced Examples
-### GGML Backbone Example
-```bash
-python -m examples.basic_example \
-  --input_text "My name is Dave, and um, I'm from London" \
-  --ref_audio ./samples/dave.wav \
-  --ref_text ./samples/dave.txt \
-  --backbone neuphonic/neutts-air-q4-gguf
-```
-
-### Onnx Decoder Example
-
-Make sure you have installed ```onnxruntime```
-
-```bash
-python -m examples.onnx_example \
-  --input_text "My name is Dave, and um, I'm from London" \
-  --ref_codes samples/dave.pt \
-  --ref_text samples/dave.txt
-```
-
-To run the model with the onnx decoder you need to encode the reference sample. Please refer to the encode_reference example.
-
-#### Encode reference
-You only need to provide a reference audio for the reference encoding.
-
-```bash
-python -m examples.encode_reference \
- --ref_audio  ./samples/dave.wav \
- --output_path encoded_reference.pt
- ```
-
-## Prepare References for Cloning
+## Preparing References for Cloning
 
 NeuTTS Air requires two inputs:
 
@@ -182,6 +153,16 @@ For optimal performance, reference audio samples should be:
 4. **Saved as a `.wav` file**
 5. **Clean** — minimal to no background noise
 6. **Natural, continuous speech** — like a monologue or conversation, with few pauses, so the model can capture tone effectively
+
+## Guidelines for minimizing Latency
+
+For optimal performance on-device:
+
+1. Use the GGUF model backbones
+2. Pre-encode references
+3. Use the [onnx codec decoder](https://huggingface.co/neuphonic/neucodec-onnx-decoder)
+
+Take a look at this example [examples README](examples/README.md###minimal-latency-example) to get started.
 
 ## Responsibility
 
