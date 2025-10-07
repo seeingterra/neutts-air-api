@@ -137,7 +137,8 @@ class NeuTTSAir:
     def encode_reference(self, ref_audio_path: str | Path):
         wav, _ = librosa.load(ref_audio_path, sr=16000, mono=True)
         wav_tensor = torch.from_numpy(wav).float().unsqueeze(0).unsqueeze(0)  # [1, 1, T]
-        ref_codes = self.codec.encode_code(audio_or_path=wav_tensor).squeeze(0).squeeze(0)
+        with torch.no_grad():
+            ref_codes = self.codec.encode_code(audio_or_path=wav_tensor).squeeze(0).squeeze(0)
         return ref_codes
 
     def _decode(self, codes: str):
