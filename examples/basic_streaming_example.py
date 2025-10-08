@@ -32,8 +32,8 @@ def main(input_text, ref_codes_path, ref_text, backbone):
         channels=1,
         rate=24_000,
         output=True
-    print("Streaming...")
     )
+    print("Streaming...")
     for chunk in tts.infer_stream(input_text, ref_codes, ref_text):
         audio = (chunk * 32767).astype(np.int16)
         print(audio.shape)
