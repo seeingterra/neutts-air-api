@@ -36,6 +36,7 @@ def main(input_text, ref_codes_path, ref_text, backbone):
     print("Streaming...")
     for chunk in tts.infer_stream(input_text, ref_codes, ref_text):
         audio = (chunk * 32767).astype(np.int16)
+        print(audio)
         stream.write(audio.tobytes())
     
     stream.stop_stream()
@@ -84,5 +85,4 @@ if __name__ == "__main__":
         ref_codes_path=args.ref_codes,
         ref_text=args.ref_text,
         backbone=args.backbone,
-        output_path=args.output_path,
     )
