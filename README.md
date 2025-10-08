@@ -110,7 +110,7 @@ from neuttsair.neutts import NeuTTSAir
 import soundfile as sf
 
 tts = NeuTTSAir(
-   backbone_repo="neuphonic/neutts-air", # or 'neutts-air-q4-gguf' wit llama-cpp-python installed
+   backbone_repo="neuphonic/neutts-air", # or 'neutts-air-q4-gguf' with llama-cpp-python installed
    backbone_device="cpu",
    codec_repo="neuphonic/neucodec",
    codec_device="cpu"

@@ -53,9 +53,9 @@ class NeuTTSAir:
         self.max_context = 2048
         self.hop_length = 480
         self.streaming_overlap_frames = 1
-        self.streaming_frames_per_chunk = 15
-        self.streaming_lookforward = 50
-        self.streaming_lookback = 150
+        self.streaming_frames_per_chunk = 25
+        self.streaming_lookforward = 5
+        self.streaming_lookback = 50
         self.streaming_stride_samples = self.streaming_frames_per_chunk * self.hop_length
 
         # ggml & onnx flags
