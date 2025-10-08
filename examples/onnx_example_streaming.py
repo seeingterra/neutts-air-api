@@ -5,9 +5,6 @@ import numpy as np
 from neuttsair.neutts import NeuTTSAir
 import pyaudio
 
-from phonemizer.backend.espeak.wrapper import EspeakWrapper
-_ESPEAK_LIBRARY = '/opt/homebrew/Cellar/espeak/1.48.04_1/lib/libespeak.1.1.48.dylib'  #use the Path to the library.
-EspeakWrapper.set_library(_ESPEAK_LIBRARY)
 
 def main(input_text, ref_codes_path, ref_text, backbone):
     assert backbone in ["neuphonic/neutts-air-q4-gguf", "neuphonic/neutts-air-q8-gguf"], "Must be a GGUF ckpt as streaming only supported by llama-cpp."
