@@ -7,7 +7,7 @@ import pyaudio
 
 
 def main(input_text, ref_codes_path, ref_text, backbone):
-    assert backbone in ["neuphonic/neutts-air-q4-gguf", "neuphonic/neutts-air-q8-gguf"], "Must be a GGUF ckpt as streaming only supported by llama-cpp."
+    assert backbone in ["neuphonic/neutts-air-q4-gguf", "neuphonic/neutts-air-q8-gguf"], "Must be a GGUF ckpt as streaming is only currently supported by llama-cpp."
     
     # Initialize NeuTTSAir with the desired model and codec
     tts = NeuTTSAir(
@@ -32,8 +32,8 @@ def main(input_text, ref_codes_path, ref_text, backbone):
         channels=1,
         rate=24_000,
         output=True
-    )
     print("Streaming...")
+    )
     for chunk in tts.infer_stream(input_text, ref_codes, ref_text):
         audio = (chunk * 32767).astype(np.int16)
         print(audio.shape)
@@ -45,7 +45,6 @@ def main(input_text, ref_codes_path, ref_text, backbone):
 
 
 if __name__ == "__main__":
-    # get arguments from command line
     import argparse
 
     parser = argparse.ArgumentParser(description="NeuTTSAir Example")
