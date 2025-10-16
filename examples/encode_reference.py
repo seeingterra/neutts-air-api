@@ -1,7 +1,8 @@
 # This file contains an example of how to use the NeuTTSAir class to generate codes
 
 import torch
-from librosa import load
+import soundfile as sf
+import numpy as np
 from neucodec import NeuCodec
 
 
@@ -18,7 +19,18 @@ def main(ref_audio_path, output_path="output.pt"):
     codec.eval().to("cpu")
 
     # Load and encode reference audio
-    wav, _ = load(ref_audio_path, sr=16000, mono=True)  # load as 16kHz
+    wav, sr = sf.read(str(ref_audio_path), always_2d=False)
+    if wav.ndim == 2:
+        wav = wav.mean(axis=1)
+    if wav.dtype != np.float32:
+        wav = wav.astype(np.float32, copy=False)
+    target_sr = 16000
+    if sr != target_sr:
+        duration = len(wav) / float(sr)
+        new_length = int(round(duration * target_sr))
+        x_old = np.linspace(0.0, duration, num=len(wav), endpoint=False, dtype=np.float64)
+        x_new = np.linspace(0.0, duration, num=new_length, endpoint=False, dtype=np.float64)
+        wav = np.interp(x_new, x_old, wav).astype(np.float32, copy=False)
     wav_tensor = torch.from_numpy(wav).float().unsqueeze(0).unsqueeze(0)  # [1, 1, T]
     ref_codes = codec.encode_code(audio_or_path=wav_tensor).squeeze(0).squeeze(0)
 

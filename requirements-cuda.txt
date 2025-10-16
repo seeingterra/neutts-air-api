@@ -1,0 +1,11 @@
+# Install CUDA-enabled PyTorch first following CUDA.md, then install these.
+neucodec>=0.0.4
+numpy>=1.24
+phonemizer>=3.3.0
+soundfile>=0.12
+transformers>=4.40
+resemble-perth>=1.0.1
+# Optional for GGUF/ONNX/streaming
+# llama-cpp-python
+# onnxruntime
+# pyaudio

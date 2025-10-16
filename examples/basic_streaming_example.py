@@ -3,16 +3,19 @@ import soundfile as sf
 import torch
 import numpy as np
 from neuttsair.neutts import NeuTTSAir
-import pyaudio
+try:
+    import pyaudio
+except Exception:
+    pyaudio = None
 
 
-def main(input_text, ref_codes_path, ref_text, backbone):
+def main(input_text, ref_codes_path, ref_text, backbone, backbone_device="cpu"):
     assert backbone in ["neuphonic/neutts-air-q4-gguf", "neuphonic/neutts-air-q8-gguf"], "Must be a GGUF ckpt as streaming is only currently supported by llama-cpp."
     
     # Initialize NeuTTSAir with the desired model and codec
     tts = NeuTTSAir(
         backbone_repo=backbone,
-        backbone_device="cpu",
+        backbone_device=backbone_device,
         codec_repo="neuphonic/neucodec-onnx-decoder",
         codec_device="cpu"
     )
@@ -26,6 +29,8 @@ def main(input_text, ref_codes_path, ref_text, backbone):
         ref_codes = torch.load(ref_codes_path)
 
     print(f"Generating audio for input text: {input_text}")
+    if pyaudio is None:
+        raise RuntimeError("pyaudio is not installed. Install it to use streaming.")
     p = pyaudio.PyAudio()
     stream = p.open(
         format=pyaudio.paInt16,
@@ -75,8 +80,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--backbone", 
         type=str, 
-        default="neuphonic/neutts-air-q8-gguf", 
-        help="Huggingface repo containing the backbone checkpoint. Must be GGUF."
+        default="neuphonic/neutts-air-q4-gguf", 
+        help="Backbone checkpoint (GGUF). Q4 recommended for most systems."
+    )
+    parser.add_argument(
+        "--backbone_device",
+        type=str,
+    default="cpu",
+    help="Device for backbone model: cpu or gpu. GPU requires a CUDA-enabled llama-cpp build."
     )
     args = parser.parse_args()
     main(
@@ -84,4 +95,5 @@ if __name__ == "__main__":
         ref_codes_path=args.ref_codes,
         ref_text=args.ref_text,
         backbone=args.backbone,
+        backbone_device=args.backbone_device,
     )

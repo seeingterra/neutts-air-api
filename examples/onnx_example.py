@@ -4,7 +4,7 @@ import torch
 from neuttsair.neutts import NeuTTSAir
 
 
-def main(input_text, ref_codes_path, ref_text, backbone, output_path="output.wav"):
+def main(input_text, ref_codes_path, ref_text, backbone, output_path="output.wav", backbone_device="cpu"):
     if not ref_codes_path or not ref_text:
         print("No reference audio or text provided.")
         return None
@@ -12,7 +12,7 @@ def main(input_text, ref_codes_path, ref_text, backbone, output_path="output.wav
     # Initialize NeuTTSAir with the desired model and codec
     tts = NeuTTSAir(
         backbone_repo=backbone,
-        backbone_device="cpu",
+        backbone_device=backbone_device,
         codec_repo="neuphonic/neucodec-onnx-decoder",
         codec_device="cpu"
     )
@@ -67,6 +67,12 @@ if __name__ == "__main__":
         default="neuphonic/neutts-air", 
         help="Huggingface repo containing the backbone checkpoint"
     )
+    parser.add_argument(
+        "--backbone_device",
+        type=str,
+        default="cpu",
+        help="Device for backbone model: cpu or cuda"
+    )
     args = parser.parse_args()
     main(
         input_text=args.input_text,
@@ -74,4 +80,5 @@ if __name__ == "__main__":
         ref_text=args.ref_text,
         backbone=args.backbone,
         output_path=args.output_path,
+        backbone_device=args.backbone_device,
     )

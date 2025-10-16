@@ -1,0 +1,22 @@
+{
+  "backbone_repo": "neuphonic/neutts-air-q4-gguf",
+  "backbone_device": "cpu",
+  "codec_repo": "neuphonic/neucodec-onnx-decoder",
+  "codec_device": "cpu",
+  "output_dir": "outputs",
+  "filename_base": "run",
+  "speakers": [
+    {
+      "name": "dave",
+      "text": "Hello from Dave.",
+      "ref_codes": "samples/dave.pt",
+      "ref_text": "samples/dave.txt"
+    },
+    {
+      "name": "jo",
+      "text": "Hello from Jo.",
+      "ref_codes": "samples/jo.pt",
+      "ref_text": "samples/jo.txt"
+    }
+  ]
+}

@@ -1,5 +1,11 @@
 # NeuTTS Air ☁️
 
+<p align="left">
+   <a href="https://buymeacoffee.com/starmoose" target="_blank">
+      <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="40" />
+   </a>
+</p>
+
 HuggingFace 🤗: [Model](https://huggingface.co/neuphonic/neutts-air), [Q8 GGUF](https://huggingface.co/neuphonic/neutts-air-q8-gguf), [Q4 GGUF](https://huggingface.co/neuphonic/neutts-air-q4-gguf) [Spaces](https://huggingface.co/spaces/neuphonic/neutts-air)
 
 [Demo Video](https://github.com/user-attachments/assets/020547bc-9e3e-440f-b016-ae61ca645184)
@@ -41,14 +47,14 @@ NeuTTS Air is built off Qwen 0.5B - a lightweight yet capable language model opt
    cd neutts-air
    ```
 
-2. **Install `espeak` (required dependency)**
+2. **Install `eSpeak NG` (required dependency)**
 
    Please refer to the following link for instructions on how to install `espeak`:
 
    https://github.com/espeak-ng/espeak-ng/blob/master/docs/guide.md
 
    ```bash
-   # Mac OS
+   # macOS
    brew install espeak
 
    # Ubuntu/Debian
@@ -70,6 +76,10 @@ NeuTTS Air is built off Qwen 0.5B - a lightweight yet capable language model opt
    setx PHONEMIZER_ESPEAK_PATH "c:\Program Files\eSpeak NG"
    ```
 
+   Note: On Windows, this library will attempt to auto-detect eSpeak NG from the default install location (C:\Program Files\eSpeak NG). If you installed it elsewhere, set the environment variables above before running.
+
+   See WINDOWS.md in this repo for a complete Windows setup guide.
+
 3. **Install Python dependencies**
 
    The requirements file includes the dependencies needed to run the model with PyTorch.
@@ -80,6 +90,15 @@ NeuTTS Air is built off Qwen 0.5B - a lightweight yet capable language model opt
     ```
     pip install -r requirements.txt
     ```
+
+   On Windows, we recommend creating a virtual environment first:
+
+   ```pwsh
+   py -3.11 -m venv .venv
+   .\.venv\Scripts\Activate.ps1
+   pip install -U pip setuptools wheel
+   pip install -r requirements.txt
+   ```
 
 4. **(Optional) Install Llama-cpp-python to use the `GGUF` models.**
    ```
@@ -94,19 +113,63 @@ NeuTTS Air is built off Qwen 0.5B - a lightweight yet capable language model opt
    pip install onnxruntime
    ```
 
+6. **(Optional) Install CUDA-enabled PyTorch and GPU deps**
+
+   If you want to run with an NVIDIA GPU, follow CUDA.md for installing a CUDA-enabled PyTorch wheel. Then install the rest of the deps with `requirements-cuda.txt`:
+
+   ```
+   pip install -r requirements-cuda.txt
+   ```
+
 ## Running the Model
 
-Run the basic example script to synthesize speech:
+Run the basic example script to synthesize speech (GGUF recommended on Windows):
 ```bash
 python -m examples.basic_example \
   --input_text "My name is Dave, and um, I'm from London" \
   --ref_audio samples/dave.wav \
-  --ref_text samples/dave.txt
+   --ref_text samples/dave.txt \
+   --backbone neuphonic/neutts-air-q4-gguf
 ```
 
-To specify a particular model repo for the backbone or codec, add the `--backbone` argument. Available backbones are listed in [NeuTTS-Air huggingface collection](https://huggingface.co/collections/neuphonic/neutts-air-68cc14b7033b4c56197ef350).
+On Windows PowerShell the command is the same. Make sure your virtual environment is activated and eSpeak NG is installed. See WINDOWS.md for more details.
+
+To specify a particular model repo for the backbone or codec, add the `--backbone` argument. Available backbones are listed in [NeuTTS-Air huggingface collection](https://huggingface.co/collections/neuphonic/neutts-air-68cc14b7033b4c56197ef350). If you choose HF (PyTorch) mode, ensure the repo contains weights (pytorch_model.bin or model.safetensors); otherwise prefer GGUF.
+
+To use GPU (when available), pass device flags in examples:
+
+```bash
+python -m examples.basic_example \
+   --input_text "..." \
+   --ref_audio samples/dave.wav \
+   --ref_text samples/dave.txt \
+   --backbone neuphonic/neutts-air \
+   --backbone_device cuda \
+   --codec_device cuda
+```
+
+Note: GGUF backends via llama-cpp may require a CUDA-enabled build; the ONNX codec decoder runs on CPU.
 
 Several examples are available, including a Jupyter notebook in the `examples` folder.
+
+### GUI App (Streamlit)
+
+You can launch a simple GUI to test text-to-speech, switch between modes (HF/GGUF/ONNX), and manage models.
+
+```
+pip install -r requirements-gui.txt
+streamlit run app/app.py
+```
+
+Notes:
+- GGUF mode requires `llama-cpp-python` installed. GPU acceleration for llama.cpp may require a CUDA-enabled build.
+- ONNX codec runs on CPU; backbone can still run on GPU.
+- Windows users: ensure eSpeak NG is installed and environment variables are set (see WINDOWS.md). The app will try to auto-detect the default install.
+
+Features:
+- Mode switching: HF (PyTorch), GGUF (llama.cpp), HF + ONNX codec
+- GGUF Model Manager: pre-download/update checkpoints from Hugging Face, list locally cached snapshots with sizes, and delete snapshots
+- Config save/load: save current selections to `app/config.json` and reload later
 
 ### One-Code Block Usage
 
@@ -188,3 +251,9 @@ Then:
 ```bash
 pre-commit install
 ```
+
+## Windows-specific notes
+
+- eSpeak NG is required for phonemization. Install from https://github.com/espeak-ng/espeak-ng/releases and ensure `libespeak-ng.dll` is present in the install folder. This package attempts to auto-detect it, but you can override via `PHONEMIZER_ESPEAK_LIBRARY` and `PHONEMIZER_ESPEAK_PATH` environment variables.
+- Audio I/O uses `soundfile` and resampling uses `scipy.signal.resample_poly` to avoid `librosa`'s optional heavy dependencies on Windows.
+- For GPU inference with PyTorch on Windows, install a CUDA-enabled torch build following https://pytorch.org/get-started/locally/ and then re-run `pip install -r requirements.txt` (you may need to edit the torch line accordingly).

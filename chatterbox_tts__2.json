@@ -1,0 +1,16 @@
+{
+  "label": "ChatterBox TTS #2",
+  "values": {
+    "ContentType": "audio/mpeg",
+    "ForceConversion": "true",
+    "UrlTemplate": "http://localhost:8004/tts",
+    "Request ContentType": "application/json",
+    "RequestBody": "{\n\"text\": \"{{ text }}\",\n\"voice_mode\": \"predefined\",\n\"predefined_voice_id\": \"{{ voice_id }}\",\n\"reference_audio_filename\": \"string\",\n\"output_format\": \"opus\",\n\"split_text\": false,\n\"chunk_size\": 120,\n\"temperature\":0.8,\n\"exaggeration\": 0.8,\n\"cfg_weight\": 0.5,\n\"seed\": 0, \"speed_factor\": 1,\n\"culture\": \"{{ culture }}\",\n\"language\": \"{{ language }}\"\n}",
+    "VoicesUrl": "http://localhost:8004/get_predefined_voices",
+    "VoicesFormat": "{\"label\":\"{{display_name}}\", \"parameters\": { \"voice_id\": \"{{ filename }}\"}\n}",
+    "ThinkingSpeech": "uh, ...\nmmh...\nhum...\nhuh...\noh...",
+    "AudioGap": "0",
+    "AuthorizationHeader": " ",
+    "": ""
+  }
+}
