@@ -1,0 +1,4 @@
+# Optional Whisper transcription support
+# Install with: pip install -r requirements-whisper.txt
+
+openai-whisper>=20231117

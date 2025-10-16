@@ -25,8 +25,20 @@ pip install -r requirements.txt
 pip install -r requirements-api.txt
 ```
 
-3. Start the server:
+3. (Optional) Install Whisper for auto-transcription:
 ```bash
+pip install -r requirements-whisper.txt
+```
+
+4. Start the server:
+```bash
+# Linux/Mac
+./start_server.sh
+
+# Windows
+start_server.bat
+
+# Or manually
 python api_server.py
 ```
 
@@ -139,23 +151,61 @@ Content-Type: multipart/form-data
 
 **Form Data:**
 - `name` (string, required): Name for the voice sample
-- `ref_text` (string, required): Transcription of the audio
+- `ref_text` (string, optional): Transcription of the audio (can be auto-transcribed)
 - `audio_file` (file, required): WAV audio file (3-15 seconds recommended)
+- `auto_transcribe` (boolean, optional): Use Whisper to auto-transcribe (default: false)
 
 **Response:**
 ```json
 {
   "message": "Voice sample 'my_voice' uploaded successfully",
-  "voice_id": "my_voice"
+  "voice_id": "my_voice",
+  "ref_text": "This is my voice sample",
+  "auto_transcribed": false
 }
 ```
 
 **Example (curl):**
 ```bash
+# With manual transcription
 curl -X POST http://127.0.0.1:8011/upload_voice \
   -F "name=my_voice" \
   -F "ref_text=This is my voice sample" \
   -F "audio_file=@/path/to/audio.wav"
+
+# With auto-transcription (requires Whisper)
+curl -X POST http://127.0.0.1:8011/upload_voice \
+  -F "name=my_voice" \
+  -F "auto_transcribe=true" \
+  -F "audio_file=@/path/to/audio.wav"
+```
+
+### Transcribe Audio
+
+Transcribe an audio file using Whisper (requires `openai-whisper` installed).
+
+```http
+POST /transcribe
+Content-Type: multipart/form-data
+```
+
+**Form Data:**
+- `audio_file` (file, required): Audio file to transcribe
+- `model` (string, optional): Whisper model size (tiny, base, small, medium, large)
+
+**Response:**
+```json
+{
+  "text": "This is the transcribed text",
+  "language": "en"
+}
+```
+
+**Example (curl):**
+```bash
+curl -X POST http://127.0.0.1:8011/transcribe \
+  -F "audio_file=@/path/to/audio.wav" \
+  -F "model=base"
 ```
 
 ### Delete Voice

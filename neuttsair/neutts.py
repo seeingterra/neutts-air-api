@@ -154,6 +154,16 @@ class NeuTTSAir:
         Returns:
             np.ndarray: Generated speech waveform.
         """
+        
+        # Validate inputs
+        if not text or not text.strip():
+            raise ValueError("Input text cannot be empty")
+        
+        if not ref_text or not ref_text.strip():
+            raise ValueError("Reference text cannot be empty")
+        
+        if ref_codes is None or (hasattr(ref_codes, '__len__') and len(ref_codes) == 0):
+            raise ValueError("Reference codes cannot be empty")
 
         # Generate tokens
         if self._is_quantized_model:
@@ -178,7 +188,17 @@ class NeuTTSAir:
             ref_text (str): Reference text for reference audio. Defaults to None.
         Yields:
             np.ndarray: Generated speech waveform.
-        """ 
+        """
+        
+        # Validate inputs
+        if not text or not text.strip():
+            raise ValueError("Input text cannot be empty")
+        
+        if not ref_text or not ref_text.strip():
+            raise ValueError("Reference text cannot be empty")
+        
+        if ref_codes is None or (hasattr(ref_codes, '__len__') and len(ref_codes) == 0):
+            raise ValueError("Reference codes cannot be empty")
 
         if self._is_quantized_model:
             return self._infer_stream_ggml(ref_codes, ref_text, text)
@@ -218,7 +238,19 @@ class NeuTTSAir:
             raise ValueError("No valid speech tokens found in the output.")
 
     def _to_phones(self, text: str) -> str:
+        # Clean and normalize the text
+        text = text.strip()
+        if not text:
+            raise ValueError("Input text cannot be empty")
+        
+        # Replace multiple spaces with single space
+        text = " ".join(text.split())
+        
+        # Phonemize the text
         phones = self.phonemizer.phonemize([text])
+        if not phones or len(phones) == 0:
+            raise ValueError("Failed to phonemize text")
+        
         phones = phones[0].split()
         phones = " ".join(phones)
         return phones

@@ -19,6 +19,15 @@ import uvicorn
 
 from neuttsair.neutts import NeuTTSAir
 
+# Try to import whisper for optional transcription support
+try:
+    import whisper
+    WHISPER_AVAILABLE = True
+    whisper_model = None
+except ImportError:
+    WHISPER_AVAILABLE = False
+    whisper_model = None
+
 app = FastAPI(title="NeuTTS Air API", version="1.0.0")
 
 # Enable CORS for web GUI
@@ -172,18 +181,27 @@ async def synthesize_speech(request: SynthesisRequest):
 @app.post("/upload_voice")
 async def upload_voice_sample(
     name: str = Form(...),
-    ref_text: str = Form(...),
-    audio_file: UploadFile = File(...)
+    ref_text: str = Form(None),
+    audio_file: UploadFile = File(...),
+    auto_transcribe: bool = Form(False)
 ):
     """
     Upload a new voice sample for cloning
+    
+    Args:
+        name: Name for the voice sample
+        ref_text: Reference text (optional if auto_transcribe is True)
+        audio_file: WAV audio file
+        auto_transcribe: Use Whisper to auto-transcribe (requires whisper installed)
     """
     if tts_instance is None:
         raise HTTPException(status_code=503, detail="TTS model not initialized")
     
-    # Validate inputs
-    if not name or not ref_text:
-        raise HTTPException(status_code=400, detail="Name and reference text are required")
+    # Validate name
+    if not name:
+        raise HTTPException(status_code=400, detail="Name is required")
+    
+    tmp_path = None
     
     # Save uploaded audio to temporary file
     try:
@@ -191,6 +209,31 @@ async def upload_voice_sample(
             content = await audio_file.read()
             tmp_file.write(content)
             tmp_path = tmp_file.name
+        
+        # Auto-transcribe if requested and ref_text not provided
+        if auto_transcribe and not ref_text:
+            if not WHISPER_AVAILABLE:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Whisper not installed. Install with: pip install openai-whisper"
+                )
+            
+            global whisper_model
+            if whisper_model is None:
+                print("Loading Whisper model for transcription...")
+                whisper_model = whisper.load_model("base")
+            
+            print(f"Transcribing audio for voice '{name}'...")
+            result = whisper_model.transcribe(tmp_path)
+            ref_text = result["text"].strip()
+            print(f"Transcribed: {ref_text}")
+        
+        # Validate ref_text
+        if not ref_text or not ref_text.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="Reference text is required (or enable auto_transcribe)"
+            )
         
         # Encode reference audio
         ref_codes = tts_instance.encode_reference(tmp_path)
@@ -202,11 +245,69 @@ async def upload_voice_sample(
             "audio_path": tmp_path
         }
         
-        return {"message": f"Voice sample '{name}' uploaded successfully", "voice_id": name}
+        return {
+            "message": f"Voice sample '{name}' uploaded successfully",
+            "voice_id": name,
+            "ref_text": ref_text.strip(),
+            "auto_transcribed": auto_transcribe and WHISPER_AVAILABLE
+        }
+    except HTTPException:
+        if tmp_path and os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+        raise
     except Exception as e:
-        if os.path.exists(tmp_path):
+        if tmp_path and os.path.exists(tmp_path):
             os.unlink(tmp_path)
         raise HTTPException(status_code=500, detail=f"Failed to upload voice sample: {str(e)}")
+
+
+@app.post("/transcribe")
+async def transcribe_audio_file(
+    audio_file: UploadFile = File(...),
+    model: str = Form("base")
+):
+    """
+    Transcribe an audio file using Whisper (requires openai-whisper installed)
+    
+    Args:
+        audio_file: Audio file to transcribe
+        model: Whisper model size (tiny, base, small, medium, large)
+    """
+    if not WHISPER_AVAILABLE:
+        raise HTTPException(
+            status_code=501,
+            detail="Whisper not installed. Install with: pip install openai-whisper"
+        )
+    
+    tmp_path = None
+    try:
+        # Save uploaded audio to temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
+            content = await audio_file.read()
+            tmp_file.write(content)
+            tmp_path = tmp_file.name
+        
+        # Load model if needed
+        global whisper_model
+        if whisper_model is None:
+            print(f"Loading Whisper model '{model}'...")
+            whisper_model = whisper.load_model(model)
+        
+        # Transcribe
+        result = whisper_model.transcribe(tmp_path)
+        
+        return {
+            "text": result["text"].strip(),
+            "language": result.get("language", "unknown")
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            try:
+                os.unlink(tmp_path)
+            except:
+                pass
 
 
 @app.delete("/voices/{voice_id}")
@@ -248,7 +349,11 @@ async def root():
             "synthesize": "/synthesize",
             "voices": "/voices",
             "upload_voice": "/upload_voice",
+            "transcribe": "/transcribe",
             "gui": "/gui"
+        },
+        "features": {
+            "whisper_available": WHISPER_AVAILABLE
         }
     }
 
