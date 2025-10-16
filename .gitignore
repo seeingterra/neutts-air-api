@@ -149,6 +149,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.venv-cuda/
 
 # Spyder project settings
 .spyderproject
@@ -212,7 +213,35 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+<<<<<<< HEAD
 # NeuTTS Air specific
-output.wav
 example_output*.wav
 test.wav
+=======
+# App local config
+
+# Generated artifacts and local samples
+samples/**
+!samples/.gitkeep
+!samples/dave.pt
+!samples/dave.txt
+!samples/dave.pt
+!samples/dave.txt
+!samples/dave.wav
+!samples/jo.pt
+!samples/jo.txt
+!samples/jo.wav
+!samples/dave.wav
+!samples/jo.pt
+!samples/jo.txt
+!samples/jo.wav
+outputs/**
+runtime/**
+
+# Generated checkpoints and artifacts at repo root
+/*-20*.pt
+/*-20*.txt
+/output.wav
+/chatterbox_tts__*.json
+/voxta_provider_example.json
+>>>>>>> 177acc0 (policy: whitelist Dave and Jo samples under samples/ for public repo)
