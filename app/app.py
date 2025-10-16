@@ -18,7 +18,7 @@ import zipfile
 from huggingface_hub import snapshot_download, list_repo_files
 import requests
 
-from neuttsair.neutts import NeuTTSAir
+from typing import Any
 
 
 st.set_page_config(page_title="NeuTTS Air", page_icon="☁️", layout="centered")
@@ -117,7 +117,9 @@ except Exception:
 
 
 @st.cache_resource(show_spinner=False)
-def load_tts(backbone_repo: str, codec_repo: str, backbone_device: str, codec_device: str) -> NeuTTSAir:
+def load_tts(backbone_repo: str, codec_repo: str, backbone_device: str, codec_device: str):
+    # Lazy import to avoid importing torch/phonemizer at app startup
+    from neuttsair.neutts import NeuTTSAir
     return NeuTTSAir(
         backbone_repo=backbone_repo,
         backbone_device=backbone_device,
@@ -127,7 +129,7 @@ def load_tts(backbone_repo: str, codec_repo: str, backbone_device: str, codec_de
 
 
 def infer_once(
-    tts: NeuTTSAir,
+    tts: Any,
     input_text: str,
     ref_text: str,
     ref_wav_path: Path | None = None,

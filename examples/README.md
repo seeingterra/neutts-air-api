@@ -1,3 +1,11 @@
+## Examples (fork overview)
+
+This fork provides a Windows‑first API and GUI around NeuTTS‑Air. For setup, Voxta integration, and Windows tips, see the top‑level README.
+
+Note: I’m an independent tester/developer and not affiliated with the NeuTTS‑Air team.
+
+---
+
 # Examples
 
 ### GGUF Backbones

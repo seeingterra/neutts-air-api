@@ -5,7 +5,15 @@ phonemizer>=3.3.0
 soundfile>=0.12
 transformers>=4.40
 resemble-perth>=1.0.1
-# Optional for GGUF/ONNX/streaming
-# llama-cpp-python
-# onnxruntime
+
+# API server runtime
+fastapi>=0.111
+uvicorn>=0.30
+pydantic>=2.7
+
+# Default Windows-first stack uses GGUF backbone + ONNX decoder
+llama-cpp-python>=0.3.16
+onnxruntime>=1.17
+
+# Optional for GGUF/ONNX/streaming and audio capture
 # pyaudio

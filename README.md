@@ -1,10 +1,93 @@
-# NeuTTS Air ☁️
+## NeuTTS‑Air API + GUI (Windows‑first)
+
+<p align="left">
+   <a href="#quick-start-windows"><img alt="Windows" src="https://img.shields.io/badge/Windows-supported-0078D6?logo=windows&logoColor=white"></a>
+   <a href="#quick-start-windows"><img alt="Python 3.11+" src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white"></a>
+   <a href="#what’s-included"><img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-openai%20style-009688?logo=fastapi&logoColor=white"></a>
+   <a href="#what’s-included"><img alt="Streamlit GUI" src="https://img.shields.io/badge/Streamlit-GUI-FF4B4B?logo=streamlit&logoColor=white"></a>
+   <img alt="Backbone GGUF" src="https://img.shields.io/badge/Backbone-GGUF-7B42BC">
+   <a href="https://huggingface.co/neuphonic/neucodec-onnx-decoder"><img alt="Decoder ONNX CPU" src="https://img.shields.io/badge/Decoder-ONNX%20CPU-005CED?logo=onnx&logoColor=white"></a>
+   <img alt="OpenAI Compatible" src="https://img.shields.io/badge/OpenAI-Compatible-black?logo=openai&logoColor=white">
+   <img alt="Voxta Provider" src="https://img.shields.io/badge/Voxta-Provider-brightgreen">
+   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache--2.0-blue"></a>
+</p>
+
+This fork adds a Windows‑friendly API service and GUI around the upstream NeuTTS‑Air model so you can run high‑quality TTS locally, integrate with tools like Voxta, and manage voices with minimal setup.
+
+Important: I am not affiliated with the Neuphonic/NeuTTS‑Air developer team. I’m an independent tester and developer of extensions, software, and tools for emerging AI platforms.
+
+### What’s included
+
+- OpenAI‑compatible FastAPI service (Voxta‑friendly)
+  - Endpoints: `/v1/audio/speech`, `/tts`, `/v1/voices`, `/v1/models`, `/health`, `/metrics`, `/admin/warmup`, `/get_predefined_voices`
+  - Voice cache + automatic warm‑ups; robust health reporting; safe defaults for refs/transcripts
+- Streamlit GUI
+  - Mode switching (HF, GGUF via llama.cpp, HF + ONNX codec)
+  - GGUF model manager (download/list/delete), voice pre‑encode (.wav → .pt + .txt), generate & save, optional auto‑start API
+  - Voxta provider JSON generator
+- Windows‑first stability
+  - Default stack: GGUF backbone + ONNX decoder (CPU) for consistent Windows performance
+  - eSpeak NG auto‑detect (with overrides), resilient phonemizer fallback, precise ONNX prefix‑trim, lazy heavy imports
+  - Only reference Dave/Jo voice files are kept in `samples/`
+
+### Quick start (Windows)
+
+1) Install eSpeak NG (default path recommended):
+   - https://github.com/espeak-ng/espeak-ng/releases
+   - If installed elsewhere, set env vars before running:
+     - `PHONEMIZER_ESPEAK_LIBRARY="C:\\Path\\to\\eSpeak NG\\libespeak-ng.dll"`
+     - `PHONEMIZER_ESPEAK_PATH="C:\\Path\\to\\eSpeak NG"`
+
+2) Create a venv and install requirements (Python 3.11+ recommended):
+
+```
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -U pip setuptools wheel
+pip install -r requirements.txt
+```
+
+3) Run the API (OpenAI‑style):
+
+```
+setx TRANSFORMERS_NO_TORCHAO 1
+$env:PYTHONPATH = (Resolve-Path .).Path
+$env:TRANSFORMERS_NO_TORCHAO = "1"
+python -m uvicorn server.openai_api:app --host 127.0.0.1 --port 8011
+```
+
+4) Launch the GUI (optional):
+
+```
+pip install -r requirements-gui.txt
+streamlit run app/app.py
+```
+
+Notes
+- Default backbone: `neuphonic/neutts-air-q4-gguf` (works via `llama-cpp-python`)
+- Default codec: `neuphonic/neucodec-onnx-decoder` (runs on CPU via `onnxruntime`)
+- The API exposes `/health`; if initialization fails, the reason is shown there.
+
+### Voxta integration
+
+- Use the OpenAI‑style endpoint `/v1/audio/speech`.
+- List available voices via `/v1/voices` or `/get_predefined_voices`.
+- A provider JSON can be generated from the GUI.
+- Optional auth: set `NEUTTS_API_KEY` and send `Authorization: Bearer <key>`.
+
+### Support this work
 
 <p align="left">
    <a href="https://buymeacoffee.com/starmoose" target="_blank">
       <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="40" />
    </a>
 </p>
+
+---
+
+# Upstream README (original)
+
+# NeuTTS Air ☁️
 
 HuggingFace 🤗: [Model](https://huggingface.co/neuphonic/neutts-air), [Q8 GGUF](https://huggingface.co/neuphonic/neutts-air-q8-gguf), [Q4 GGUF](https://huggingface.co/neuphonic/neutts-air-q4-gguf) [Spaces](https://huggingface.co/spaces/neuphonic/neutts-air)
 

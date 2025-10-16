@@ -71,38 +71,8 @@ try:
 except Exception:
     pass
 
-import transformers as _tf
-
-# Avoid importing torchao quantizers which can be incompatible with some Torch builds
-os.environ.setdefault("TRANSFORMERS_NO_TORCHAO", "1")
-
-# Compatibility shim: ensure certain models exist at transformers top-level for neucodec
-try:
-    if not hasattr(_tf, "HubertModel"):
-        try:
-            HubertModel = importlib.import_module("transformers.models.hubert").HubertModel
-        except Exception:
-            HubertModel = importlib.import_module(
-                "transformers.models.hubert.modeling_hubert"
-            ).HubertModel
-        setattr(_tf, "HubertModel", HubertModel)
-    if not hasattr(_tf, "Wav2Vec2BertModel"):
-        try:
-            Wav2Vec2BertModel = importlib.import_module(
-                "transformers.models.wav2vec2_bert"
-            ).Wav2Vec2BertModel
-        except Exception:
-            Wav2Vec2BertModel = importlib.import_module(
-                "transformers.models.wav2vec2_bert.modeling_wav2vec2_bert"
-            ).Wav2Vec2BertModel
-        setattr(_tf, "Wav2Vec2BertModel", Wav2Vec2BertModel)
-except Exception:
-    # Best-effort; if unavailable, neucodec import may fail and will surface a clear error
-    pass
-
 from phonemizer.backend import EspeakBackend
 from phonemizer.backend.espeak.wrapper import EspeakWrapper
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, TextIteratorStreamer
 from threading import Thread
 
 
@@ -268,6 +238,9 @@ class NeuTTSAir:
             self._is_quantized_model = True
 
         else:
+            # Lazy import transformers only when needed (HF path)
+            import transformers as _tf
+            from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig
             # Prefer fast tokenizer; fall back to slow if incompatible, allow remote code
             try:
                 self.tokenizer = AutoTokenizer.from_pretrained(
@@ -538,12 +511,40 @@ class NeuTTSAir:
         norm = str(text).replace("\r\n", "\n").replace("\r", "\n")
         # Split into non-empty lines; if no lines, keep a single empty string
         lines = [ln.strip() for ln in norm.split("\n") if ln.strip() != ""] or [norm.strip()]
-        try:
-            ph_list = self.phonemizer.phonemize(lines)
-        except Exception:
-            # Fallback: collapse whitespace and try as single line
-            single = re.sub(r"\s+", " ", norm).strip()
-            ph_list = self.phonemizer.phonemize([single])
+
+        def _safe_phonemize(line_list: list[str]) -> list[str]:
+            """Call phonemizer safely, enforcing output length to match input; if not, collapse to one line.
+            Any exception results in a whitespace-collapsed passthrough.
+            """
+            try:
+                out = self.phonemizer.phonemize(line_list)
+                # Some backends may return a single string; normalize to list
+                if isinstance(out, (str, bytes)):
+                    out = [str(out)]
+                # If the backend produced a different number of lines, try collapsing to a single line
+                if not isinstance(out, (list, tuple)):
+                    out = [str(out)]
+                if len(out) != len(line_list):
+                    joined = " ".join(line_list)
+                    try:
+                        out2 = self.phonemizer.phonemize([joined])
+                        if isinstance(out2, (str, bytes)):
+                            out2 = [str(out2)]
+                        if isinstance(out2, (list, tuple)) and len(out2) == 1:
+                            out = list(out2)
+                        else:
+                            out = [re.sub(r"\s+", " ", joined).strip()]
+                    except Exception:
+                        out = [re.sub(r"\s+", " ", joined).strip()]
+            except Exception:
+                joined = " ".join(line_list)
+                out = [re.sub(r"\s+", " ", joined).strip()]
+            # Final guarantee: return a list of strings with same length as input (collapse if needed)
+            if len(out) != len(line_list):
+                out = [re.sub(r"\s+", " ", " ".join(line_list)).strip()]
+            return [str(x) for x in out]
+
+        ph_list = _safe_phonemize(lines)
         # Tokenize each line's phones into words, then flatten and join with single spaces
         words: list[str] = []
         for ph in ph_list:

@@ -5,7 +5,15 @@ soundfile>=0.12
 torch>=2.2
 transformers>=4.40
 resemble-perth>=1.0.1
-# Optional for streaming example and GGUF backends
+
+# API server runtime
+fastapi>=0.111
+uvicorn>=0.30
+pydantic>=2.7
+
+# Default Windows-first stack uses GGUF backbone + ONNX decoder
+llama-cpp-python>=0.3.16
+onnxruntime>=1.17
+
+# Optional for streaming example and audio capture
 # pyaudio
-# llama-cpp-python
-# onnxruntime
