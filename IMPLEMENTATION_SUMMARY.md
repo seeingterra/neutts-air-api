@@ -22,7 +22,7 @@ A production-ready API server with the following features:
 
 #### Features:
 - Automatic loading of voice samples from `samples/` directory
-- Pre-encoding of reference audio for faster synthesis
+- Pre-encoding of reference audio for faster synthesis (references are encoded once during upload rather than on each synthesis request)
 - Comprehensive error handling with descriptive messages
 - CORS support for web GUI
 - Memory-efficient streaming responses
@@ -41,11 +41,11 @@ A modern, responsive web interface with:
 ### 3. Input Validation (`neuttsair/neutts.py`)
 
 Enhanced the core TTS module with:
-- Text sanitization and normalization
+- Text sanitization and normalization (removes extra whitespace, handles edge cases)
 - Empty input validation
 - Reference text validation
 - Better error messages
-- Prevention of the "number of lines in input and output must be equal" error
+- Prevention of the "number of lines in input and output must be equal" error (caused by mismatched phoneme processing between input and reference text, now prevented through proper text normalization)
 
 ### 4. Whisper Integration
 
@@ -59,7 +59,7 @@ Optional transcription support:
 
 Comprehensive Windows installation guide covering:
 - Python installation
-- eSpeak NG setup with environment variables
+- eSpeak NG setup with environment variables (required for phonemization - converting text to phonemes for TTS)
 - CUDA installation for GPU support
 - Virtual environment setup
 - PowerShell-specific commands
@@ -99,10 +99,10 @@ Created comprehensive documentation:
 
 ### Performance
 
-1. **Pre-encoded References**: Voice samples are encoded once during upload
+1. **Pre-encoding References**: Voice samples are encoded once during upload
 2. **Streaming Responses**: Audio is streamed for memory efficiency
-3. **Optional GGUF Support**: Faster inference with quantized models
-4. **ONNX Decoder**: Optional faster decoding
+3. **Optional GGUF Support**: Faster inference with GGUF (GPT-Generated Unified Format) quantized models for reduced memory usage and faster CPU inference
+4. **ONNX Decoder**: Optional faster decoding using ONNX Runtime
 
 ### User Experience
 
