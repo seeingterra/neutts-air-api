@@ -149,6 +149,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.venv-cuda/
 
 # Spyder project settings
 .spyderproject
@@ -218,5 +219,19 @@ app/config.json
 # Generated artifacts and local samples
 samples/**
 !samples/.gitkeep
+!samples/dave.pt
+!samples/dave.txt
+!samples/dave.wav
+!samples/jo.pt
+!samples/jo.txt
+!samples/jo.wav
 outputs/**
 runtime/**
+
+# Generated checkpoints and artifacts at repo root
+/*-20*.pt
+/*-20*.txt
+/*output*.wav
+/output.wav
+/chatterbox_tts__*.json
+/voxta_provider_example.json
