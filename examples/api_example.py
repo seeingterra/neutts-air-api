@@ -19,7 +19,6 @@ Usage:
     python examples/api_example.py
 """
 
-import io
 import requests
 import soundfile as sf
 from pathlib import Path
@@ -96,10 +95,6 @@ def upload_voice_sample(name, audio_path, ref_text=None, auto_transcribe=False):
         print(f"❌ Audio file not found: {audio_path}")
         return False
     
-    files = {
-        'audio_file': open(audio_path, 'rb')
-    }
-    
     data = {
         'name': name,
         'auto_transcribe': auto_transcribe
@@ -108,11 +103,16 @@ def upload_voice_sample(name, audio_path, ref_text=None, auto_transcribe=False):
     if ref_text:
         data['ref_text'] = ref_text
     
-    response = requests.post(
-        f"{API_BASE}/upload_voice",
-        files=files,
-        data=data
-    )
+    with open(audio_path, 'rb') as f:
+        files = {
+            'audio_file': f
+        }
+        
+        response = requests.post(
+            f"{API_BASE}/upload_voice",
+            files=files,
+            data=data
+        )
     
     if response.status_code == 200:
         result = response.json()
@@ -137,19 +137,20 @@ def transcribe_audio(audio_path, model="base"):
         print(f"❌ Audio file not found: {audio_path}")
         return None
     
-    files = {
-        'audio_file': open(audio_path, 'rb')
-    }
-    
     data = {
         'model': model
     }
     
-    response = requests.post(
-        f"{API_BASE}/transcribe",
-        files=files,
-        data=data
-    )
+    with open(audio_path, 'rb') as f:
+        files = {
+            'audio_file': f
+        }
+        
+        response = requests.post(
+            f"{API_BASE}/transcribe",
+            files=files,
+            data=data
+        )
     
     if response.status_code == 200:
         result = response.json()
