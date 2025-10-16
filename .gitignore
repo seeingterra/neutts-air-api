@@ -214,3 +214,9 @@ __marimo__/
 
 # App local config
 app/config.json
+
+# Generated artifacts and local samples
+samples/**
+!samples/.gitkeep
+outputs/**
+runtime/**
