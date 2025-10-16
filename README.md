@@ -96,6 +96,24 @@ NeuTTS Air is built off Qwen 0.5B - a lightweight yet capable language model opt
 
 ## Running the Model
 
+### Option 1: API Server with Web GUI (Recommended)
+
+The easiest way to use NeuTTS Air is through the API server with web interface:
+
+```bash
+# Install API requirements
+pip install -r requirements-api.txt
+
+# Start the server
+python api_server.py
+```
+
+Then open your browser to `http://127.0.0.1:8011/gui`
+
+See [API_README.md](API_README.md) for detailed API documentation and [WINDOWS_INSTALL.md](WINDOWS_INSTALL.md) for Windows-specific instructions.
+
+### Option 2: Command Line
+
 Run the basic example script to synthesize speech:
 ```bash
 python -m examples.basic_example \

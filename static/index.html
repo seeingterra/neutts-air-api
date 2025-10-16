@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuTTS Air - Web Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            color: #667eea;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .voices-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .voice-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #e1e8ed;
+            transition: border-color 0.3s;
+        }
+
+        .voice-item:hover {
+            border-color: #667eea;
+        }
+
+        .voice-item h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .voice-item p {
+            font-size: 0.9em;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .file-upload {
+            border: 2px dashed #e1e8ed;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎙️ NeuTTS Air</h1>
+            <p>State-of-the-art Voice AI with Instant Voice Cloning</p>
+        </div>
+
+        <div class="card">
+            <h2>🔊 Text-to-Speech Synthesis</h2>
+            <div id="synthesisStatus"></div>
+            
+            <div class="form-group">
+                <label for="voiceSelect">Select Voice</label>
+                <select id="voiceSelect">
+                    <option value="">Loading voices...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="inputText">Text to Synthesize</label>
+                <textarea id="inputText" placeholder="Enter the text you want to convert to speech...">Hello, this is a test of the NeuTTS Air text-to-speech system.</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="refText">Reference Text (Optional)</label>
+                <textarea id="refText" placeholder="Leave empty to use the default reference text for the selected voice..."></textarea>
+            </div>
+
+            <button id="synthesizeBtn" onclick="synthesizeSpeech()">
+                <span id="synthesizeText">Generate Speech</span>
+                <span id="synthesizeLoading" class="loading hidden"></span>
+            </button>
+
+            <div id="audioContainer" class="hidden">
+                <audio id="audioPlayer" class="audio-player" controls></audio>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🎤 Voice Samples</h2>
+            <div id="voicesStatus"></div>
+            <div id="voicesList" class="voices-list">
+                <p>Loading voices...</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📤 Upload Voice Sample</h2>
+            <div id="uploadStatus"></div>
+            
+            <div class="form-group">
+                <label for="voiceName">Voice Name</label>
+                <input type="text" id="voiceName" placeholder="e.g., my_voice">
+            </div>
+
+            <div class="form-group">
+                <label for="voiceRefText">Reference Text</label>
+                <textarea id="voiceRefText" placeholder="Enter the text that corresponds to your audio sample..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Audio File (WAV format, 3-15 seconds)</label>
+                <div class="file-upload" onclick="document.getElementById('audioFile').click()">
+                    <input type="file" id="audioFile" accept=".wav,audio/wav" onchange="updateFileName()">
+                    <p id="fileName">Click to select audio file</p>
+                </div>
+            </div>
+
+            <button id="uploadBtn" onclick="uploadVoice()">
+                <span id="uploadText">Upload Voice Sample</span>
+                <span id="uploadLoading" class="loading hidden"></span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:8011';
+
+        // Check server health on load
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                if (!response.ok) {
+                    showStatus('synthesisStatus', 'Server not ready. Please wait...', 'error');
+                }
+            } catch (error) {
+                showStatus('synthesisStatus', 'Cannot connect to server. Please ensure the API server is running on port 8011.', 'error');
+            }
+        }
+
+        // Load available voices
+        async function loadVoices() {
+            try {
+                const response = await fetch(`${API_BASE}/voices`);
+                const data = await response.json();
+                
+                const voiceSelect = document.getElementById('voiceSelect');
+                voiceSelect.innerHTML = '';
+                
+                if (data.voices && data.voices.length > 0) {
+                    data.voices.forEach(voice => {
+                        const option = document.createElement('option');
+                        option.value = voice.id;
+                        option.textContent = voice.id;
+                        voiceSelect.appendChild(option);
+                    });
+
+                    // Display voices in the list
+                    const voicesList = document.getElementById('voicesList');
+                    voicesList.innerHTML = '';
+                    data.voices.forEach(voice => {
+                        const voiceItem = document.createElement('div');
+                        voiceItem.className = 'voice-item';
+                        voiceItem.innerHTML = `
+                            <h4>${voice.id}</h4>
+                            <p>${voice.ref_text.substring(0, 100)}${voice.ref_text.length > 100 ? '...' : ''}</p>
+                        `;
+                        voicesList.appendChild(voiceItem);
+                    });
+                } else {
+                    voiceSelect.innerHTML = '<option value="">No voices available</option>';
+                    document.getElementById('voicesList').innerHTML = '<p>No voices available. Please upload a voice sample.</p>';
+                }
+            } catch (error) {
+                showStatus('voicesStatus', `Failed to load voices: ${error.message}`, 'error');
+            }
+        }
+
+        // Synthesize speech
+        async function synthesizeSpeech() {
+            const voiceId = document.getElementById('voiceSelect').value;
+            const inputText = document.getElementById('inputText').value.trim();
+            const refText = document.getElementById('refText').value.trim();
+
+            if (!inputText) {
+                showStatus('synthesisStatus', 'Please enter text to synthesize', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('synthesizeBtn');
+            const btnText = document.getElementById('synthesizeText');
+            const btnLoading = document.getElementById('synthesizeLoading');
+            
+            btn.disabled = true;
+            btnText.classList.add('hidden');
+            btnLoading.classList.remove('hidden');
+            showStatus('synthesisStatus', 'Generating speech...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/synthesize`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: inputText,
+                        voice_id: voiceId || 'default',
+                        ref_text: refText || null
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Synthesis failed');
+                }
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                
+                const audioPlayer = document.getElementById('audioPlayer');
+                audioPlayer.src = url;
+                document.getElementById('audioContainer').classList.remove('hidden');
+                
+                showStatus('synthesisStatus', 'Speech generated successfully!', 'success');
+            } catch (error) {
+                showStatus('synthesisStatus', `Synthesis failed: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btnText.classList.remove('hidden');
+                btnLoading.classList.add('hidden');
+            }
+        }
+
+        // Upload voice sample
+        async function uploadVoice() {
+            const name = document.getElementById('voiceName').value.trim();
+            const refText = document.getElementById('voiceRefText').value.trim();
+            const audioFile = document.getElementById('audioFile').files[0];
+
+            if (!name || !refText || !audioFile) {
+                showStatus('uploadStatus', 'Please fill in all fields', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('uploadBtn');
+            const btnText = document.getElementById('uploadText');
+            const btnLoading = document.getElementById('uploadLoading');
+            
+            btn.disabled = true;
+            btnText.classList.add('hidden');
+            btnLoading.classList.remove('hidden');
+            showStatus('uploadStatus', 'Uploading voice sample...', 'info');
+
+            try {
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('ref_text', refText);
+                formData.append('audio_file', audioFile);
+
+                const response = await fetch(`${API_BASE}/upload_voice`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Upload failed');
+                }
+
+                const result = await response.json();
+                showStatus('uploadStatus', result.message, 'success');
+                
+                // Clear form
+                document.getElementById('voiceName').value = '';
+                document.getElementById('voiceRefText').value = '';
+                document.getElementById('audioFile').value = '';
+                document.getElementById('fileName').textContent = 'Click to select audio file';
+                
+                // Reload voices
+                await loadVoices();
+            } catch (error) {
+                showStatus('uploadStatus', `Upload failed: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btnText.classList.remove('hidden');
+                btnLoading.classList.add('hidden');
+            }
+        }
+
+        // Update file name display
+        function updateFileName() {
+            const fileInput = document.getElementById('audioFile');
+            const fileName = document.getElementById('fileName');
+            if (fileInput.files.length > 0) {
+                fileName.textContent = fileInput.files[0].name;
+            }
+        }
+
+        // Show status message
+        function showStatus(elementId, message, type) {
+            const statusDiv = document.getElementById(elementId);
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            await checkHealth();
+            await loadVoices();
+        });
+    </script>
+</body>
+</html>
